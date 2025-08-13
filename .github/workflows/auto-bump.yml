@@ -54,9 +54,9 @@ jobs:
           for f in ${{ steps.formulas.outputs.formulae }}; do
             echo "=== Bump $f if needed ==="
             brew bump-formula-pr \
-              --tap "${{ github.repository }}" \
               --no-browse \
-              --strict-audit \
+              --strict \
+              --online \
               --force \
               "$f" || echo "No bump needed for $f";
           done
