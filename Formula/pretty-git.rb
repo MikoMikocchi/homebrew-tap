@@ -8,7 +8,8 @@ class PrettyGit < Formula
   depends_on "ruby"
 
   livecheck do
-    url :rubygems
+    url "https://rubygems.org/gems/pretty-git"
+    strategy :rubygems
   end
  
   resource "csv" do
