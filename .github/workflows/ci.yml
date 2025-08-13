@@ -17,21 +17,46 @@ jobs:
         run: brew tap "${{ github.repository }}"
       - name: Show taps
         run: brew tap
+      - name: Compute formula list
+        id: formulas
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ -n "${{ github.event.pull_request.base.sha }}" ]; then
+            git fetch --no-tags --prune --depth=1 origin "${{ github.event.pull_request.base.sha }}"
+            CHANGED=$(git diff --name-only "${{ github.event.pull_request.base.sha }}"...HEAD || true)
+            FILES=$(printf "%s\n" "$CHANGED" | grep '^Formula/.*\\.rb$' || true)
+          else
+            FILES=$(ls Formula/*.rb 2>/dev/null || true)
+          fi
+          NAMES=$(for f in $FILES; do basename "$f" .rb; done | sort -u)
+          if [ -z "$NAMES" ]; then
+            echo "formulae=pretty-git" >> "$GITHUB_OUTPUT"
+          else
+            echo "formulae=$NAMES" >> "$GITHUB_OUTPUT"
+          fi
       - name: Style
         run: brew style --fix
       - name: Audit
         run: |
           brew untap "${{ github.repository }}" || true
           brew tap "${{ github.repository }}"
-          brew audit --strict --online pretty-git
+          for f in ${{ steps.formulas.outputs.formulae }}; do
+            echo "Auditing $f";
+            brew audit --strict --online "$f";
+          done
       - name: Install
         run: |
           set -euxo pipefail
-          brew install --build-from-source ./Formula/pretty-git.rb || {
-            brew untap "${{ github.repository }}" || true
-            brew tap "${{ github.repository }}"
-            brew install --build-from-source pretty-git
-          }
-          brew info pretty-git
+          brew untap "${{ github.repository }}" || true
+          brew tap "${{ github.repository }}"
+          for f in ${{ steps.formulas.outputs.formulae }}; do
+            echo "Installing $f";
+            brew install --build-from-source --formula "$f";
+            brew info "$f";
+          done
       - name: Test
-        run: brew test pretty-git
+        run: |
+          for f in ${{ steps.formulas.outputs.formulae }}; do
+            echo "Testing $f";
+            brew test "$f";
+          done
