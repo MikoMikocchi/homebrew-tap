@@ -4,6 +4,7 @@ class PrettyGit < Formula
   url "https://rubygems.org/downloads/pretty-git-0.1.0.gem"
   sha256 "5caebad53d746b711a07b9a190d0a5cbc2910c60447a759effae5eb9a4cd6def"
   license "MIT"
+  revision 1
 
   depends_on "ruby"
 
