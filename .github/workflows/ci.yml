@@ -14,6 +14,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Cache Homebrew downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/Homebrew/downloads
+          key: ${{ runner.os }}-brew-downloads-${{ hashFiles('Formula/*.rb') }}
+          restore-keys: |
+            ${{ runner.os }}-brew-downloads-
       - name: Ensure Homebrew up-to-date
         run: |
           brew update-reset || brew update
