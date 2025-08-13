@@ -51,12 +51,18 @@ jobs:
           HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euxo pipefail
+          brew install jq || true
           for f in ${{ steps.formulas.outputs.formulae }}; do
-            echo "=== Bump $f if needed ==="
+            echo "=== Determine latest version for $f ==="
+            NEW_VERSION=$(brew livecheck --json "$f" | jq -r '.[0].versions.latest // empty')
+            if [ -z "$NEW_VERSION" ]; then
+              echo "No newer version found for $f; skipping."; continue;
+            fi
+            echo "=== Bump $f to $NEW_VERSION (version-only) ==="
             brew bump-formula-pr \
               --no-browse \
               --strict \
               --online \
-              --force \
+              --version="$NEW_VERSION" \
               "$f" || echo "No bump needed for $f";
           done

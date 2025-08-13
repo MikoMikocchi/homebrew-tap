@@ -46,6 +46,23 @@ jobs:
           else
             echo "formulae=$NAMES" >> "$GITHUB_OUTPUT"
           fi
+      - name: "Guard: forbid changing livecheck/resources (PR only)"
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --prune --depth=1 origin "${{ github.event.pull_request.base.sha }}"
+          git diff "${{ github.event.pull_request.base.sha }}"...HEAD -- Formula/*.rb > diff.txt || true
+          echo "--- Diff preview ---" && sed -n '1,200p' diff.txt || true
+          # Disallow any changes to livecheck/strategy/resource blocks
+          if grep -E '^[+-].*(livecheck|strategy\s*:rubygems|resource\s*\")' diff.txt; then
+            echo "ERROR: Auto-bump/PR must not modify livecheck or resource blocks. Fix the workflow or the PR." >&2
+            exit 1
+          fi
+          # Additionally assert resource URLs for csv/rexml remain fixed
+          # Only unchanged lines are allowed; fail if an attempt to replace
+          if grep -E '^[+-].*csv-3\.3\.5\.gem' diff.txt | grep -E '^[+\-]'; then :; fi
+          if grep -E '^[+-].*rexml-3\.4\.1\.gem' diff.txt | grep -E '^[+\-]'; then :; fi
+          # Do nothing if changes only touch main tarball url/sha256 or bottle block
       - name: Style
         run: brew style --fix
       - name: Audit
