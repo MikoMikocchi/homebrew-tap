@@ -19,7 +19,12 @@ jobs:
         run: brew audit --strict --online --tap="${{ github.repository }}"
       - name: Install
         run: |
-          brew install --build-from-source Formula/pretty-git.rb || \
-          (brew untap "${{ github.repository }}" && brew tap "${{ github.repository }}" && brew install --build-from-source pretty-git)
+          set -euxo pipefail
+          brew install --build-from-source ./Formula/pretty-git.rb || {
+            brew untap "${{ github.repository }}" || true
+            brew tap "${{ github.repository }}"
+            brew install --build-from-source pretty-git
+          }
+          brew info pretty-git
       - name: Test
         run: brew test pretty-git
