@@ -1,12 +1,25 @@
 class PrettyGit < Formula
   desc "Git repository analytics and reporting CLI"
   homepage "https://github.com/MikoMikocchi/pretty-git"
-  url "https://rubygems.org/downloads/pretty-git-0.1.0.gem"
-  sha256 "5caebad53d746b711a07b9a190d0a5cbc2910c60447a759effae5eb9a4cd6def"
+  url "https://rubygems.org/downloads/pretty-git-0.1.1.gem"
+  sha256 "a3bcfc2898e6f1fdc5ed189a8dd7604a614957aadc90fae13f1069f3ca9befd2"
   license "MIT"
-  revision 2
 
   depends_on "ruby"
+
+  livecheck do
+    url :rubygems
+  end
+ 
+  resource "csv" do
+    url "https://rubygems.org/downloads/csv-3.3.5.gem"
+    sha256 "6e5134ac3383ef728b7f02725d9872934f523cb40b961479f69cf3afa6c8e73f"
+  end
+
+  resource "rexml" do
+    url "https://rubygems.org/downloads/rexml-3.4.1.gem"
+    sha256 "c74527a9a0a04b4ec31dbe0dc4ed6004b960af943d8db42e539edde3a871abca"
+  end
 
   def install
     rm_rf libexec
@@ -16,8 +29,14 @@ class PrettyGit < Formula
     ENV["GEM_HOME"] = vendor
     ENV["GEM_PATH"] = ""
 
+    resources.each do |r|
+      r.fetch
+      system "gem", "install", r.cached_download, "--no-document",
+             "--install-dir", vendor
+    end
+
     system "gem", "install", cached_download, "--no-document",
-           "--install-dir", vendor, "--ignore-dependencies"
+           "--install-dir", vendor
 
     (bin/"pretty-git").write <<~SH
       #!/bin/bash
@@ -28,6 +47,11 @@ class PrettyGit < Formula
   end
 
   test do
+    # Basic invocation should work
     system "#{bin}/pretty-git", "--help"
+
+    # Prefer version check when available
+    output = shell_output("#{bin}/pretty-git --version")
+    assert_match version.to_s, output
   end
 end
