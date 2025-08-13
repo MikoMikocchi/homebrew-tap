@@ -54,9 +54,21 @@ jobs:
           brew install jq || true
           for f in ${{ steps.formulas.outputs.formulae }}; do
             echo "=== Determine latest version for $f ==="
-            NEW_VERSION=$(brew livecheck --json "$f" | jq -r '.[0].versions.latest // empty')
+            NEW_VERSION=$(brew livecheck --json "$f" | tee /dev/stderr | jq -r '.[0].versions.latest // empty')
+            if [ -z "$NEW_VERSION" ]; then
+              echo "Livecheck returned empty. Falling back to RubyGems API..."
+              # Try RubyGems API: https://rubygems.org/api/v1/gems/<name>.json
+              NEW_VERSION=$(curl -fsSL "https://rubygems.org/api/v1/gems/${f}.json" | jq -r '.version // empty' || true)
+              echo "RubyGems API latest for ${f}: ${NEW_VERSION:-<empty>}"
+            fi
+            # Determine current version from brew info
+            CURRENT_VERSION=$(brew info --json=v2 "$f" | jq -r '.formulae[0].versions.stable // empty')
+            echo "Current=$CURRENT_VERSION, Latest=$NEW_VERSION"
             if [ -z "$NEW_VERSION" ]; then
               echo "No newer version found for $f; skipping."; continue;
+            fi
+            if [ "$NEW_VERSION" = "$CURRENT_VERSION" ]; then
+              echo "Already at latest for $f; skipping."; continue;
             fi
             echo "=== Bump $f to $NEW_VERSION (version-only) ==="
             brew bump-formula-pr \
