@@ -5,13 +5,13 @@ class PrettyGit < Formula
   sha256 "a3bcfc2898e6f1fdc5ed189a8dd7604a614957aadc90fae13f1069f3ca9befd2"
   license "MIT"
 
-  depends_on "ruby"
-
   livecheck do
     url "https://rubygems.org/gems/pretty-git"
     strategy :rubygems
   end
- 
+
+  depends_on "ruby"
+
   resource "csv" do
     url "https://rubygems.org/downloads/csv-3.3.5.gem"
     sha256 "6e5134ac3383ef728b7f02725d9872934f523cb40b961479f69cf3afa6c8e73f"
@@ -23,7 +23,7 @@ class PrettyGit < Formula
   end
 
   def install
-    rm_rf libexec
+    rm_r libexec if libexec.exist?
 
     vendor = libexec/"vendor"
     vendor.mkpath
@@ -49,10 +49,11 @@ class PrettyGit < Formula
 
   test do
     # Basic invocation should work
-    system "#{bin}/pretty-git", "--help"
+    system bin/"pretty-git", "--help"
 
     # Prefer version check when available
-    output = shell_output("#{bin}/pretty-git --version")
+    exe = bin/"pretty-git"
+    output = shell_output("#{exe} --version")
     assert_match version.to_s, output
   end
 end
