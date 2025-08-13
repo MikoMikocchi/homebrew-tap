@@ -1,0 +1,14 @@
+name: Feature request
+description: Suggest an improvement or new formula
+labels: [enhancement]
+body:
+  - type: input
+    id: area
+    attributes:
+      label: Area
+      placeholder: Formula, CI, docs, etc.
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should change and why?

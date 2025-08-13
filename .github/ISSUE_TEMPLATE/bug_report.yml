@@ -1,0 +1,32 @@
+name: Bug report
+description: Report a problem with a formula from this tap
+labels: [bug]
+body:
+  - type: input
+    id: formula
+    attributes:
+      label: Formula name
+      placeholder: pretty-git
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened? What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1. brew install <formula>
+        2. ...
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      value: |
+        - brew config
+        - brew doctor
