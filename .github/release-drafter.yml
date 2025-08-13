@@ -1,0 +1,26 @@
+name-template: 'Release v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+categories:
+  - title: '🚀 Features'
+    labels: ['feature', 'enhancement']
+  - title: '🧰 Maintenance'
+    labels: ['chore']
+  - title: '🧪 CI/CD'
+    labels: ['ci', 'bottles']
+  - title: '📦 Dependencies'
+    labels: ['dependencies']
+  - title: '📝 Docs'
+    labels: ['docs']
+change-template: '- $TITLE (#$NUMBER) by @$AUTHOR'
+change-title-escapes: '\\<*_&'
+version-resolver:
+  major:
+    labels: ['major']
+  minor:
+    labels: ['minor', 'feature', 'enhancement']
+  patch:
+    labels: ['patch', 'bug', 'fix', 'ci', 'docs', 'dependencies', 'chore']
+  default: patch
+template: |
+  ## Changes
+  $CHANGES
