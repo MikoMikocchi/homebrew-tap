@@ -1,4 +1,4 @@
-# MikoMikocchi Homebrew Tap
+# 🍺 MikoMikocchi Homebrew Tap
 
 [![CI](https://github.com/MikoMikocchi/homebrew-tap/actions/workflows/ci.yml/badge.svg)](https://github.com/MikoMikocchi/homebrew-tap/actions/workflows/ci.yml)
 [![Auto Bump](https://github.com/MikoMikocchi/homebrew-tap/actions/workflows/auto-bump.yml/badge.svg)](https://github.com/MikoMikocchi/homebrew-tap/actions/workflows/auto-bump.yml)
