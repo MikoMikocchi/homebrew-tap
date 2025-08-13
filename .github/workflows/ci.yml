@@ -11,11 +11,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Homebrew/actions/setup-homebrew@master
+      - name: Tap this repository
+        run: brew tap "${{ github.repository }}"
       - name: Style
         run: brew style --fix
       - name: Audit
         run: brew audit --strict --online --tap="${{ github.repository }}"
       - name: Install
-        run: brew install --build-from-source pretty-git
+        run: |
+          brew install --build-from-source Formula/pretty-git.rb || \
+          (brew untap "${{ github.repository }}" && brew tap "${{ github.repository }}" && brew install --build-from-source pretty-git)
       - name: Test
         run: brew test pretty-git
