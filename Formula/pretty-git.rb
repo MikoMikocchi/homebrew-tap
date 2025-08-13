@@ -2,7 +2,7 @@ class PrettyGit < Formula
   desc "Git repository analytics and reporting CLI"
   homepage "https://github.com/MikoMikocchi/pretty-git"
   url "https://rubygems.org/downloads/pretty-git-0.1.0.gem"
-  sha256 "b4f66c251f6384c686f0ee074376a1a1bf74a219fab33d82bc7fbee6a4d7c707"
+  sha256 "5caebad53d746b711a07b9a190d0a5cbc2910c60447a759effae5eb9a4cd6def"
   license "MIT"
 
   depends_on "ruby"
