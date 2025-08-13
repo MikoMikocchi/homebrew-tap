@@ -1,0 +1,54 @@
+name: Publish Draft Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [ main, master ]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: >-
+      ${{ github.event.pull_request.merged == true &&
+          (startsWith(github.event.pull_request.head.ref, 'create-pull-request/') ||
+           contains(github.event.pull_request.title, 'bottle')) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Publish latest draft release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            // List releases (newest first)
+            const { data: releases } = await github.rest.repos.listReleases({ owner, repo, per_page: 20 });
+            const draft = releases.find(r => r.draft === true);
+            if (!draft) {
+              core.info('No draft releases found. Nothing to publish.');
+              return;
+            }
+            core.info(`Publishing draft release: ${draft.tag_name || draft.name || draft.id}`);
+            await github.rest.repos.updateRelease({
+              owner,
+              repo,
+              release_id: draft.id,
+              draft: false,
+              make_latest: 'true'
+            });
+            core.info('Release published successfully.');
+
+      - name: Output release URL
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const { data: releases } = await github.rest.repos.listReleases({ owner, repo, per_page: 5 });
+            const latest = releases.find(r => !r.draft);
+            if (latest) core.info(`Latest release: ${latest.html_url}`);
