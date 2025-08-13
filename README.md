@@ -4,6 +4,8 @@
 [![Auto Bump](https://github.com/MikoMikocchi/homebrew-tap/actions/workflows/auto-bump.yml/badge.svg)](https://github.com/MikoMikocchi/homebrew-tap/actions/workflows/auto-bump.yml)
 [![Build Bottles](https://github.com/MikoMikocchi/homebrew-tap/actions/workflows/bottle.yml/badge.svg)](https://github.com/MikoMikocchi/homebrew-tap/actions/workflows/bottle.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+![Last Commit](https://img.shields.io/github/last-commit/MikoMikocchi/homebrew-tap)
 
 <p align="center">
   <img src="docs/images/Homebrew_logo.png" alt="Homebrew" width="220" />
