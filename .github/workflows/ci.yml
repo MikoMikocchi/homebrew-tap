@@ -10,7 +10,9 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Homebrew/actions/setup-homebrew@master
+      - name: Ensure Homebrew up-to-date
+        run: |
+          brew update-reset || brew update
       - name: Tap this repository
         run: brew tap "${{ github.repository }}"
       - name: Show taps
