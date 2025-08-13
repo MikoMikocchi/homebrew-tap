@@ -6,6 +6,13 @@ on:
       formula:
         description: 'Formula name(s) to bottle (space-separated). Leave empty to bottle all formulas.'
         required: false
+  workflow_run:
+    workflows: ["Auto Bump Formula"]
+    types: [completed]
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'Formula/*.rb'
 
 permissions:
   contents: write
@@ -13,6 +20,7 @@ permissions:
 
 jobs:
   build:
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success') }}
     strategy:
       fail-fast: false
       matrix:
@@ -65,6 +73,7 @@ jobs:
 
   merge-and-pr:
     needs: build
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success') }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
