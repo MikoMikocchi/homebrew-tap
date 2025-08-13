@@ -18,7 +18,10 @@ jobs:
       - name: Style
         run: brew style --fix
       - name: Audit
-        run: brew audit --strict --online ./Formula/pretty-git.rb
+        run: |
+          brew untap "${{ github.repository }}" || true
+          brew tap "${{ github.repository }}"
+          brew audit --strict --online pretty-git
       - name: Install
         run: |
           set -euxo pipefail
