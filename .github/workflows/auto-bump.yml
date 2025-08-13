@@ -48,9 +48,11 @@ jobs:
           done
       - name: Bump as needed
         env:
-          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
         run: |
           set -euxo pipefail
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           brew install jq || true
           for f in ${{ steps.formulas.outputs.formulae }}; do
             echo "=== Determine latest version for $f ==="
@@ -75,6 +77,7 @@ jobs:
               --no-browse \
               --strict \
               --online \
+              --tap "${{ github.repository }}" \
               --version="$NEW_VERSION" \
               "$f" || echo "No bump needed for $f";
           done
