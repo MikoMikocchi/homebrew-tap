@@ -1,0 +1,30 @@
+name: Auto Bump Formula
+
+on:
+  schedule:
+    - cron: '0 6 * * *' # daily
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Homebrew/actions/setup-homebrew@master
+      - name: Livecheck
+        run: brew livecheck pretty-git || true
+      - name: Bump formula if needed
+        env:
+          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euxo pipefail
+          # Try to bump automatically from RubyGems
+          brew bump-formula-pr \
+            --tap "${{ github.repository }}" \
+            --no-browse \
+            --force \
+            pretty-git || echo "No bump needed"

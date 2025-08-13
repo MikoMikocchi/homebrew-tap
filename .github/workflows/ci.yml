@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Homebrew/actions/setup-homebrew@master
+      - name: Style
+        run: brew style --fix
+      - name: Audit
+        run: brew audit --strict --online --tap="${{ github.repository }}"
+      - name: Install
+        run: brew install --build-from-source pretty-git
+      - name: Test
+        run: brew test pretty-git
