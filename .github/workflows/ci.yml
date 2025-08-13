@@ -13,7 +13,7 @@ jobs:
         os: [macos-latest, macos-13]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Cache Homebrew downloads
         uses: actions/cache@v4
         with:
