@@ -13,10 +13,12 @@ jobs:
       - uses: Homebrew/actions/setup-homebrew@master
       - name: Tap this repository
         run: brew tap "${{ github.repository }}"
+      - name: Show taps
+        run: brew tap
       - name: Style
         run: brew style --fix
       - name: Audit
-        run: brew audit --strict --online --tap="${{ github.repository }}"
+        run: brew audit --strict --online ./Formula/pretty-git.rb
       - name: Install
         run: |
           set -euxo pipefail
