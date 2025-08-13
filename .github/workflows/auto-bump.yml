@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: '0 6 * * *' # daily
   workflow_dispatch:
+    inputs:
+      formula:
+        description: 'Formula name to bump (optional). Leave empty to bump all/livechecked)'
+        required: false
 
 permissions:
   contents: write
@@ -14,17 +18,45 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Homebrew/actions/setup-homebrew@master
-      - name: Livecheck
-        run: brew livecheck pretty-git || true
-      - name: Bump formula if needed
+      - name: Ensure Homebrew up-to-date
+        run: |
+          brew update-reset || brew update
+      - name: Tap repository
+        run: |
+          brew untap "${{ github.repository }}" || true
+          brew tap "${{ github.repository }}"
+      - name: Compute formula list
+        id: formulas
+        run: |
+          set -euo pipefail
+          if [ -n "${{ github.event.inputs.formula }}" ]; then
+            echo "formulae=${{ github.event.inputs.formula }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          FILES=$(ls Formula/*.rb 2>/dev/null || true)
+          NAMES=$(for f in $FILES; do basename "$f" .rb; done | sort -u)
+          if [ -z "$NAMES" ]; then
+            echo "formulae=pretty-git" >> "$GITHUB_OUTPUT"
+          else
+            echo "formulae=$NAMES" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Livecheck (newer only)
+        run: |
+          for f in ${{ steps.formulas.outputs.formulae }}; do
+            echo "=== Livecheck $f ==="
+            brew livecheck --newer-only --quiet "$f" || true
+          done
+      - name: Bump as needed
         env:
           HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euxo pipefail
-          # Try to bump automatically from RubyGems
-          brew bump-formula-pr \
-            --tap "${{ github.repository }}" \
-            --no-browse \
-            --force \
-            pretty-git || echo "No bump needed"
+          for f in ${{ steps.formulas.outputs.formulae }}; do
+            echo "=== Bump $f if needed ==="
+            brew bump-formula-pr \
+              --tap "${{ github.repository }}" \
+              --no-browse \
+              --strict-audit \
+              --force \
+              "$f" || echo "No bump needed for $f";
+          done
