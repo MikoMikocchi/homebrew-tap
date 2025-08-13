@@ -1,0 +1,68 @@
+name: Build Bottles
+
+on:
+  workflow_dispatch:
+    inputs:
+      formula:
+        description: 'Formula name(s) to bottle (space-separated). Leave empty to bottle all formulas.'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  bottle:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure Homebrew up-to-date
+        run: |
+          brew update-reset || brew update
+
+      - name: Tap repository
+        run: |
+          brew untap "${{ github.repository }}" || true
+          brew tap "${{ github.repository }}"
+
+      - name: Compute formula list
+        id: formulas
+        run: |
+          set -euo pipefail
+          if [ -n "${{ github.event.inputs.formula }}" ]; then
+            echo "formulae=${{ github.event.inputs.formula }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          FILES=$(ls Formula/*.rb 2>/dev/null || true)
+          NAMES=$(for f in $FILES; do basename "$f" .rb; done | sort -u)
+          if [ -z "$NAMES" ]; then
+            echo "formulae=pretty-git" >> "$GITHUB_OUTPUT"
+          else
+            echo "formulae=$NAMES" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Compute release tag
+        id: meta
+        run: |
+          echo "tag=bottles-$(date +%Y%m%d-%H%M%S)" >> "$GITHUB_OUTPUT"
+
+      - name: Build bottles
+        run: |
+          set -euxo pipefail
+          mkdir -p bottles
+          for f in ${{ steps.formulas.outputs.formulae }}; do
+            echo "Building bottle for $f"
+            brew install --build-bottle --formula "$f"
+            brew bottle --json --no-rebuild --root-url="https://github.com/${{ github.repository }}/releases/download/${{ steps.meta.outputs.tag }}" "$f"
+            mv ./*.tar.gz ./*.json bottles/ || true
+          done
+
+      - name: Upload bottles to draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: ${{ steps.meta.outputs.tag }}
+          draft: true
+          files: |
+            bottles/*.tar.gz
+            bottles/*.json
