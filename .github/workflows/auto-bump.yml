@@ -74,12 +74,17 @@ jobs:
             if [ "$NEW_VERSION" = "$CURRENT_VERSION" ]; then
               echo "Already at latest for $f; skipping."; continue;
             fi
-            echo "=== Bump $f to $NEW_VERSION (version-only) ==="
+            NEW_URL="https://rubygems.org/downloads/${f}-${NEW_VERSION}.gem"
+            echo "Compute SHA256 for $NEW_URL"
+            NEW_SHA=$(curl -fsSL "$NEW_URL" | shasum -a 256 | awk '{print $1}')
+            echo "NEW_SHA=$NEW_SHA"
+            echo "=== Bump $f to $NEW_VERSION (url+sha256) ==="
             brew bump-formula-pr \
               --no-browse \
               --strict \
               --online \
               --no-fork \
-              --version="$NEW_VERSION" \
+              --url="$NEW_URL" \
+              --sha256="$NEW_SHA" \
               "$f" || echo "No bump needed for $f";
           done
