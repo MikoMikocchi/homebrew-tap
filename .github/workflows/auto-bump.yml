@@ -77,7 +77,7 @@ jobs:
               --no-browse \
               --strict \
               --online \
-              --tap "${{ github.repository }}" \
+              --no-fork \
               --version="$NEW_VERSION" \
               "$f" || echo "No bump needed for $f";
           done
