@@ -78,13 +78,50 @@ jobs:
             echo "Compute SHA256 for $NEW_URL"
             NEW_SHA=$(curl -fsSL "$NEW_URL" | shasum -a 256 | awk '{print $1}')
             echo "NEW_SHA=$NEW_SHA"
-            echo "=== Bump $f to $NEW_VERSION (url+sha256) ==="
+            BRANCH="bump-$f-$NEW_VERSION"
+            echo "=== Prepare branch $BRANCH ==="
+            git checkout -b "$BRANCH"
+
+            echo "=== Write-only bump (url+sha256) ==="
             brew bump-formula-pr \
-              --no-browse \
+              --write-only \
+              --commit \
               --strict \
               --online \
-              --no-fork \
               --url="$NEW_URL" \
               --sha256="$NEW_SHA" \
-              "$f" || echo "No bump needed for $f";
+              "$f"
+
+            echo "=== Preflight safety checks ==="
+            # 1) Only one formula file modified
+            CHANGED_FILES=$(git show --name-only --pretty=format: | sed '/^$/d' | wc -l | tr -d ' ')
+            if [ "$CHANGED_FILES" != "1" ]; then
+              echo "Unexpected number of changed files: $CHANGED_FILES"; git show --name-only --pretty=format:; exit 1; fi
+            # 2) No edits to livecheck/resource blocks in diff
+            if git diff --unified=0 HEAD~1..HEAD -- Formula | grep -E '^[+-].*(livecheck|resource|strategy\s*:rubygems)'; then
+              echo "Guard: detected changes to livecheck/resource; aborting."; git diff HEAD~1..HEAD -- Formula; exit 1; fi
+            # 3) Ensure resource URLs remain pinned to csv-3.3.5 and rexml-3.4.1 in resulting file
+            FORMULA_PATH=$(git show --name-only --pretty=format: | head -n1)
+            if ! grep -q 'resource "csv"' "$FORMULA_PATH" || ! grep -q 'downloads/csv-3.3.5.gem' "$FORMULA_PATH"; then
+              echo "Guard: csv resource URL/version changed"; exit 1; fi
+            if ! grep -q 'resource "rexml"' "$FORMULA_PATH" || ! grep -q 'downloads/rexml-3.4.1.gem' "$FORMULA_PATH"; then
+              echo "Guard: rexml resource URL/version changed"; exit 1; fi
+            # 4) Ensure livecheck URL is RubyGems page (not download)
+            if ! grep -q 'livecheck do' "$FORMULA_PATH" || ! grep -q 'url \"https://rubygems.org/gems/pretty-git\"' "$FORMULA_PATH"; then
+              echo "Guard: livecheck URL changed"; exit 1; fi
+            # 5) Ensure no empty sha256 strings exist
+            if grep -q 'sha256 \"\"' "$FORMULA_PATH"; then
+              echo "Guard: empty sha256 detected"; exit 1; fi
+
+            echo "=== Push branch and open PR ==="
+            git push -u origin "$BRANCH"
+            PR_TITLE="$f: update to $NEW_VERSION"
+            PR_BODY="Automated bump via workflow.\n\nThis PR updates only the main gem URL and sha256.\nGuard checks ensure livecheck/resources remain unchanged."
+            DATA_JSON=$(jq -n --arg title "$PR_TITLE" --arg head "$BRANCH" --arg base "main" --arg body "$PR_BODY" '{title:$title, head:$head, base:$base, body:$body}')
+            curl -fsS -X POST \
+              -H "Authorization: token ${HOMEBREW_GITHUB_API_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -d "$DATA_JSON" \
+              "https://api.github.com/repos/${{ github.repository }}/pulls" \
+              | tee /dev/stderr | jq -r '.html_url // empty'
           done
