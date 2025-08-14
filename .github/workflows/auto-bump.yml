@@ -53,6 +53,8 @@ jobs:
           set -euxo pipefail
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Ensure pushes use PAT with repo scope (avoid malformed auth URL)
+          git remote set-url origin "https://x-access-token:${HOMEBREW_GITHUB_API_TOKEN}@github.com/${{ github.repository }}.git"
           brew install jq || true
           for f in ${{ steps.formulas.outputs.formulae }}; do
             echo "=== Determine latest version for $f ==="
