@@ -85,33 +85,7 @@ jobs:
             echo "=== Precise in-file bump (url+sha256) ==="
             FORMULA_PATH="Formula/${f}.rb"
             cp "$FORMULA_PATH" "${FORMULA_PATH}.bak"
-            awk -v new_url="$NEW_URL" -v new_sha="$NEW_SHA" '
-              BEGIN { in_block="none"; replaced_url=0; replaced_sha=0 }
-              /^\s*livecheck\s+do/ { in_block="livecheck" }
-              /^\s*resource\s+\"/ { in_block="resource" }
-              /^\s*end\s*$/ { if (in_block!="none") in_block="none" }
-              {
-                if (in_block=="none") {
-                  if (!replaced_url && $0 ~ /^\s*url\s+\"https:\/\/rubygems.org\/downloads\//) {
-                    print gensub(/^(\s*url\s+)\".*\"/, "\\1\"" new_url "\"", 1);
-                    replaced_url=1; next;
-                  }
-                  if (replaced_url && !replaced_sha && $0 ~ /^\s*sha256\s+\".*\"/) {
-                    print gensub(/^(\s*sha256\s+)\".*\"/, "\\1\"" new_sha "\"", 1);
-                    replaced_sha=1; next;
-                  }
-                  # drop revision in main section if present
-                  if ($0 ~ /^\s*revision\s+\d+\s*$/) { next; }
-                }
-                print $0;
-              }
-              END {
-                if (!replaced_url || !replaced_sha) {
-                  exit 42;
-                }
-              }
-            ' "$FORMULA_PATH" > "${FORMULA_PATH}.new"
-            mv "${FORMULA_PATH}.new" "$FORMULA_PATH"
+            ruby scripts/bump_main_url_sha.rb "$FORMULA_PATH" "$NEW_URL" "$NEW_SHA"
             if ! git diff --exit-code -- "$FORMULA_PATH" >/dev/null; then
               git add "$FORMULA_PATH"
               git commit -m "$f: bump to $NEW_VERSION (url+sha256 only)"
