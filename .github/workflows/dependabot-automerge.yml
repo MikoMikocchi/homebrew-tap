@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Approve PR
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const { owner, repo } = context.repo;
@@ -28,7 +28,7 @@ jobs:
             core.info('Approved Dependabot PR.');
 
       - name: Enable auto-merge (squash)
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const node_id = context.payload.pull_request.node_id;
