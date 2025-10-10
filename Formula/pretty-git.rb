@@ -1,25 +1,26 @@
 class PrettyGit < Formula
   desc "Git repository analytics and reporting CLI"
   homepage "https://github.com/MikoMikocchi/pretty-git"
-  url "https://rubygems.org/downloads/pretty-git-0.1.5.gem"
-  sha256 "ad33efee2369f2592095f942beae38a763a3a14138e23f5d5ab11af6da91fc4e"
+  url "https://rubygems.org/downloads/pretty-git-0.1.6.gem"
+  sha256 ""
   license "MIT"
+  revision 1
 
   livecheck do
-    url "https://rubygems.org/gems/pretty-git"
+  url "https://rubygems.org/downloads/pretty-git-0.1.6.gem"
     strategy :rubygems
   end
 
   depends_on "ruby"
 
   resource "csv" do
-    url "https://rubygems.org/downloads/csv-3.3.5.gem"
-    sha256 "6e5134ac3383ef728b7f02725d9872934f523cb40b961479f69cf3afa6c8e73f"
+  url "https://rubygems.org/downloads/pretty-git-0.1.6.gem"
+  sha256 ""
   end
 
   resource "rexml" do
-    url "https://rubygems.org/downloads/rexml-3.4.1.gem"
-    sha256 "c74527a9a0a04b4ec31dbe0dc4ed6004b960af943d8db42e539edde3a871abca"
+  url "https://rubygems.org/downloads/pretty-git-0.1.6.gem"
+  sha256 ""
   end
 
   def install
