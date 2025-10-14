@@ -1,8 +1,8 @@
 class PrettyGit < Formula
   desc "Git repository analytics and reporting CLI"
   homepage "https://github.com/MikoMikocchi/pretty-git"
-  url "https://rubygems.org/downloads/pretty-git-0.1.5.gem"
-  sha256 "ad33efee2369f2592095f942beae38a763a3a14138e23f5d5ab11af6da91fc4e"
+  url "https://rubygems.org/downloads/pretty-git-0.1.6.gem"
+  sha256 "252c073c555d25346de6448574a0ab5941b27d2dc34774a134487f2a0b152065"
   license "MIT"
 
   livecheck do
